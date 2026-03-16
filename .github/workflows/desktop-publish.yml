@@ -1,0 +1,35 @@
+name: Desktop Publish
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish desktop artifacts
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          if (-not $version.StartsWith("v")) {
+            $version = "0.0.0-ci"
+          }
+          .\scripts\Publish-Desktop.ps1 -Version $version
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReqForge-desktop
+          path: artifacts/desktop/*
+
